@@ -33,12 +33,22 @@ namespace SmartStudentManagementSystemRESTfulAPI.Services
             return attendances;
         }
 
-        public async Task<AttendanceDetailsDto> GetByIdAsync(int id)
+        public async Task<AttendanceDetailsDto> GetByIdAsync(int id, string currentUserId, bool isStudent)
         {
-            var attendance = await _context.Attendances
-                .AsNoTracking()
+            int parsedUserId = int.Parse(currentUserId);
+            var query = _context.Attendances.AsNoTracking();
+
+            // If the user is a student, filter the grades to only include those that belong to the student
+            if (isStudent)
+            {
+                query = query.Where(a => a.Enrollment.Student.ApplicationUserId == parsedUserId);
+            }
+
+            // Retrieve the Attendance by ID
+            var attendance = await query
                 .ProjectTo<AttendanceDetailsDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(a => a.Id == id);
+
             if (attendance is null) throw new KeyNotFoundException($"Attendance with Id '{id}' not found.");
             return attendance;
         }

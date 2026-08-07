@@ -36,10 +36,19 @@ namespace SmartStudentManagementSystemRESTfulAPI.Services
             return grads;
         }
 
-        public async Task<GradeDetailsDto> GetByIdAsync(int id)
+        public async Task<GradeDetailsDto> GetByIdAsync(int id, string currentUserId, bool isStudent)
         {
-            var grade = await _context.Grades
-                .AsNoTracking()
+            int parsedUserId = int.Parse(currentUserId);
+            var query = _context.Grades.AsNoTracking();
+
+            // If the user is a student, filter the grades to only include those that belong to the student
+            if (isStudent)
+            {
+                query = query.Where(g => g.Enrollment.Student.ApplicationUserId == parsedUserId);
+            }
+
+            // Retrieve the grade by ID
+            var grade = await query
                 .ProjectTo<GradeDetailsDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
