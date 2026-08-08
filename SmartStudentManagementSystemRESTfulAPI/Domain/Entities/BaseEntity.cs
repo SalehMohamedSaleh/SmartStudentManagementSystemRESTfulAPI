@@ -1,6 +1,8 @@
-﻿namespace SmartStudentManagementSystemRESTfulAPI.Domain.Entities
+﻿using SmartStudentManagementSystemRESTfulAPI.Domain.Interfaces;
+
+namespace SmartStudentManagementSystemRESTfulAPI.Domain.Entities
 {
-    public abstract class BaseEntity
+    public abstract class BaseEntity : IAuditableEntity
     {
         public int Id { get; set; }
 

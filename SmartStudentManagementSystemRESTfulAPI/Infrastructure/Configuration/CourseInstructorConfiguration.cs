@@ -4,9 +4,9 @@ using SmartStudentManagementSystemRESTfulAPI.Domain.Entities;
 
 namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure.Configuration
 {
-    public class CourseInstructorConfiguration : IEntityTypeConfiguration<CourseInstructor>
+    public class CourseInstructorConfiguration : AuditableEntityConfiguration<CourseInstructor>
     {
-        public void Configure(EntityTypeBuilder<CourseInstructor> builder)
+        public override void Configure(EntityTypeBuilder<CourseInstructor> builder)
         {
             // Table
             builder.ToTable("CourseInstructors");
@@ -23,7 +23,6 @@ namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure.Configuration
                    .IsRequired()
                    .HasConversion<string>()
                    .HasMaxLength(20); 
-
             // Relationships
 
             builder.HasOne(ci => ci.Teacher)

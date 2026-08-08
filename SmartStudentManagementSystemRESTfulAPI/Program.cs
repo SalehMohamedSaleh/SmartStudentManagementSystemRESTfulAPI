@@ -79,22 +79,39 @@ namespace SmartStudentManagementSystemRESTfulAPI
                     
                         ClockSkew = TimeSpan.Zero
                     };
-    });
+                });
 
             // Add Controllers
             builder.Services.AddControllers();
 
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            //// Add Scalar
             builder.Services.AddOpenApi();
 
             //// Add Swagger/OpenAPI
-            //builder.Services.AddEndpointsApiExplorer();
-            //builder.Services.AddSwaggerGen();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
 
             var app = builder.Build();
             app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
+
+            // Configure Swagger middleware
+            if (app.Environment.IsDevelopment())
+            {
+                // https://localhost:7152/swagger
+                app.UseSwagger();
+                app.UseSwaggerUI();
+
+                //http://localhost:7152/scalar/v1
+                app.MapScalarApiReference();
+
+                // default
+                app.MapOpenApi(); 
+
+            }
+
 
             // Apply migrations on startup (Optional)
             using (var scope = app.Services.CreateScope())
@@ -108,20 +125,6 @@ namespace SmartStudentManagementSystemRESTfulAPI
 
                  RoleSeeder.SeedAsync(roleManager);
             }
-
-            // Configure Swagger middleware
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-
-                // Optional: If you want to expose the Scalar API reference in development
-                //http://localhost:7152/scalar/v1
-                app.MapScalarApiReference(); 
-                
-                //app.UseSwagger();
-                //app.UseSwaggerUI();
-            }
-
 
             app.UseHttpsRedirection();
             app.UseAuthentication();

@@ -39,10 +39,19 @@ public class StudentService
                              .ToListAsync();
     }
 
-    public async Task<StudentDetailsDto> GetByIdAsync(int id)
+    public async Task<StudentDetailsDto> GetByIdAsync(int id, string currentUserId, bool isStudent)
     {
-        var student = await _context.Students
-            .AsNoTracking()
+        int parsedUserId = int.Parse(currentUserId);
+        var query = _context.Students.AsNoTracking();
+
+        // If the user is a student, filter the students to only include the one that belongs to the student
+        if (isStudent)
+        {
+            query = query.Where(s => s.ApplicationUserId == parsedUserId);
+        }
+
+
+        var student = await query
             .ProjectTo<StudentDetailsDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -61,10 +70,10 @@ public class StudentService
 
             var student = _mapper.Map<Student>(dto);
 
-        // تعيين الحالة الافتراضية
+        // Set The Student's Status to Active by default
         student.Status = StudentStatus.Active;
 
-        // رفع الصورة إذا كانت موجودة وتخزين مسارها
+        // Handle the profile picture if provided
         if (dto.Image != null)
         {
             student.ImageUrl = await _imageService.SaveImageAsync(dto.Image, "images/students");
@@ -87,14 +96,13 @@ public class StudentService
         if (student is null)
             throw new KeyNotFoundException($"Student with Id '{id}' was not found.");
 
-        // يقوم بتحديث الخصائص المشتركة من BaseStudentDto و الـ Status
+        // Update the student's properties
         _mapper.Map(dto, student);
-        
-        // إذا أرسل المستخدم صورة جديدة، نقوم بحذف القديمة ورفع الجديدة
-       
+
+        // If a new profile picture is provided, delete the old and save the new 
         if (dto.Image != null)
         {
-            _imageService.DeleteImage(student.ImageUrl);
+            _imageService.DeleteImage(student.ImageUrl!);
             student.ImageUrl = await _imageService.SaveImageAsync(dto.Image, "images/students");
         }
 

@@ -84,6 +84,32 @@ namespace SmartStudentManagementSystemRESTfulAPI.Application.Services
 
         public async Task<DashboardStatisticsDto> GetStatisticsAsync()
         {
+            // Calculate the general average grade across all grades
+            decimal averageGrade = 0;
+            if (await _context.Grades.AnyAsync())
+            {
+                 averageGrade = await _context.Grades.AverageAsync(g => g.Score); 
+            }
+
+            // Get the Leatest 5 user recorded today
+            var recentUsers = await _userManager.Users
+                .OrderByDescending(u => u.CreatedAt) 
+                .Take(5)
+                .Select(u => new RecentUserDto
+                {
+                    Id = u.Id,
+                    FullName = $"{u.FirstName} {u.LastName}",
+                    Email = u.Email ?? string.Empty
+                })
+                .ToListAsync();
+
+            // Get the total number of attendances recorded today
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var totalAttendancesToday = await _context.Attendances
+                .Where(a => a.Date == today)
+                .CountAsync();
+
             return new DashboardStatisticsDto
             {
                 UsersCount = await _userManager.Users.CountAsync(),
@@ -96,7 +122,13 @@ namespace SmartStudentManagementSystemRESTfulAPI.Application.Services
 
                 ClassRoomsCount = await _context.ClassRooms.CountAsync(),
 
-                EnrollmentsCount = await _context.Enrollments.CountAsync()
+                EnrollmentsCount = await _context.Enrollments.CountAsync(),
+
+                GeneralAverageGrade = averageGrade,
+
+                RecentUsers = recentUsers,
+
+                TotalAttendancesToday = totalAttendancesToday,
             };
         }
     }

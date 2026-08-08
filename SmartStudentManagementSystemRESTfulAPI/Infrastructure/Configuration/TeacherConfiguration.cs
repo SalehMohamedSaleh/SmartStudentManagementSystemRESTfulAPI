@@ -55,6 +55,10 @@ namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure.Configuration
                    .HasForeignKey(ci => ci.TeacherId)
                    .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasMany(t => t.ClassRooms)
+                   .WithMany(cr => cr.Teachers)
+                   .UsingEntity(j => j.ToTable("TeacherClassRooms"));
+
 
             // Indexes
 

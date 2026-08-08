@@ -38,7 +38,7 @@ namespace SmartStudentManagementSystemRESTfulAPI.Services
             int parsedUserId = int.Parse(currentUserId);
             var query = _context.Attendances.AsNoTracking();
 
-            // If the user is a student, filter the grades to only include those that belong to the student
+            // If the user is a student, filter the attendances to only include those that belong to the student
             if (isStudent)
             {
                 query = query.Where(a => a.Enrollment.Student.ApplicationUserId == parsedUserId);
@@ -75,6 +75,7 @@ namespace SmartStudentManagementSystemRESTfulAPI.Services
         {
             var attendance = await _context.Attendances.FindAsync(id);
             if (attendance is null) throw new KeyNotFoundException($"Attendance with Id '{id}' not found.");
+            // Soft delete
             attendance.IsDeleted = true;
             await _context.SaveChangesAsync();
         }

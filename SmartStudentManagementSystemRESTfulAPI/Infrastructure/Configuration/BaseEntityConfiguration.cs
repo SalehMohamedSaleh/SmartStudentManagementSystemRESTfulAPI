@@ -1,23 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartStudentManagementSystemRESTfulAPI.Domain.Entities;
+using SmartStudentManagementSystemRESTfulAPI.Domain.Interfaces;
 
 namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure.Configuration
 {
-    public abstract class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguration<TEntity> 
-                                    where TEntity : BaseEntity
+    public class BaseEntityConfiguration<T> : AuditableEntityConfiguration<T> where T : BaseEntity
     {
-        public virtual void Configure(EntityTypeBuilder<TEntity> builder)
+        public override void Configure(EntityTypeBuilder<T> builder)
         {
-
-            builder.Property(x => x.IsDeleted)
-                   .HasDefaultValue(false);
-
-            builder.Property(x => x.CreatedAt)
-                   .IsRequired();
-
-            builder.Property(x => x.UpdatedAt)
-                   .IsRequired();
+            // Call the base configuration for auditable entities
+            base.Configure(builder);
         }
     }
 }

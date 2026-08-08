@@ -82,7 +82,7 @@ namespace SmartStudentManagementSystemRESTfulAPI.Application.Services
 
             var exists = await _context.Courses
                 .AnyAsync(c =>
-                    c.Id != id && // Exclude the current course from the check
+                    c.Id != id && // Exclude(يستثني) the current course from the check
                     c.Code == dto.Code); // Check for duplicate Code
 
             if (exists)

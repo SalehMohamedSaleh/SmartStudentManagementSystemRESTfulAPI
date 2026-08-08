@@ -39,10 +39,18 @@ namespace SmartStudentManagementSystemRESTfulAPI.Services
             return teachers;
         }
 
-        public async Task<TeacherDetailsDto> GetByIdAsync(int id)
+        public async Task<TeacherDetailsDto> GetByIdAsync(int id, string currentUserId, bool isTeacher)
         {
-            var teacher = await _context.Teachers
-                .AsNoTracking()
+            int parsedUserId = int.Parse(currentUserId);
+            var query = _context.Teachers.AsNoTracking();
+
+            // If the user is a teacher, filter the teachers to only include the one that belongs to the teacher
+            if (isTeacher)
+            {
+                query = query.Where(t => t.ApplicationUserId == parsedUserId);
+            }
+
+            var teacher = await query
                 .ProjectTo<TeacherDetailsDto>(_mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -85,7 +93,7 @@ namespace SmartStudentManagementSystemRESTfulAPI.Services
             // Handle image upload if provided
             if (dto.Image != null)
             {
-                _imageService.DeleteImage(teacher.ImageUrl);
+                _imageService.DeleteImage(teacher.ImageUrl!);
                 teacher.ImageUrl = await _imageService.SaveImageAsync(dto.Image, "images/teachers");
             }
 
@@ -104,5 +112,26 @@ namespace SmartStudentManagementSystemRESTfulAPI.Services
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task AssignTeacherToClassRoomAsync(int teacherId, int classRoomId)
+        {
+            var teacher = await _context.Teachers.FindAsync(teacherId);
+            var classRoom = await _context.ClassRooms.FindAsync(classRoomId);
+
+            if (teacher == null || classRoom == null)
+                throw new KeyNotFoundException("Teacher or ClassRoom not found");
+
+            bool isAlreadyAssigned = await _context.ClassRooms
+                            .Where(c => c.Id == classRoomId)
+                            .AnyAsync(c => c.Teachers.Any(t => t.Id == teacherId));
+            if (isAlreadyAssigned)
+            {
+                throw new InvalidOperationException("This teacher is already assigned to this classroom.");
+            }
+
+            classRoom.Teachers.Add(teacher);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

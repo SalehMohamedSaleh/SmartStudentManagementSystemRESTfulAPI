@@ -22,5 +22,7 @@ namespace SmartStudentManagementSystemRESTfulAPI.Domain.Entities
         // Navigation
         public ICollection<CourseInstructor> CourseInstructors { get; }
         = new List<CourseInstructor>();
+
+        public ICollection<ClassRoom> ClassRooms { get; } = new List<ClassRoom>();
     }
 }

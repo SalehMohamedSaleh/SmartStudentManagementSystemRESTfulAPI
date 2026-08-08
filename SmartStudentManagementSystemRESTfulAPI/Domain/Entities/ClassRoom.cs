@@ -13,5 +13,6 @@ namespace SmartStudentManagementSystemRESTfulAPI.Domain.Entities
 
         // Navigation
         public ICollection<Student> Students { get; } = new List<Student>();
+        public ICollection<Teacher> Teachers { get; } = new List<Teacher>();
     }
 }

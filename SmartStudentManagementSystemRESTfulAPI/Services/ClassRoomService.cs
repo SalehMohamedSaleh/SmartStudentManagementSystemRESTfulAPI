@@ -25,19 +25,44 @@ public class ClassRoomService
         _updateValidator = updateValidator;
     }
 
-    public async Task<List<ClassRoomDetailsDto>> GetAllAsync()
+    public async Task<List<ClassRoomDetailsDto>> GetAllAsync(string currentUserId, bool teacher)
     {
-        var classRooms = await _context.ClassRooms
-                             .AsNoTracking()
+        int parsedUserId = int.Parse(currentUserId);
+        var query = _context.ClassRooms.AsNoTracking();
+
+        // If the user is a teacher, get thier classrooms only.
+        if (teacher)
+        {
+            query = query.Where(c => c.Teachers.Any(t => t.ApplicationUserId == parsedUserId));
+        }
+
+        var classRooms = await query
                              .ProjectTo<ClassRoomDetailsDto>(_mapper.ConfigurationProvider)
                              .ToListAsync();
         return classRooms;
     }
 
-    public async Task<ClassRoomDetailsDto> GetByIdAsync(int id)
+    public async Task<ClassRoomDetailsDto> GetByIdAsync(int id, string currentUserId, bool isStudent)
     {
-        var classRoom = await _context.ClassRooms
-            .AsNoTracking()
+
+        var query = _context.ClassRooms.AsNoTracking();
+
+        if (isStudent)
+        {
+            int parsedUserId = int.Parse(currentUserId);
+
+            // check if the student belongs to the classroom
+            var isEnrolled = await _context.Students
+                .AnyAsync(s => s.ApplicationUserId == parsedUserId && s.ClassRoomId == id);
+
+            if (!isEnrolled)
+            {
+                throw new UnauthorizedAccessException("You are not authorized to view this classroom.");
+            }
+        }
+
+
+        var classRoom = await query
             .ProjectTo<ClassRoomDetailsDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(c => c.Id == id);
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartStudentManagementSystemRESTfulAPI.Infrastructure;
 
@@ -11,9 +12,11 @@ using SmartStudentManagementSystemRESTfulAPI.Infrastructure;
 namespace SmartStudentManagementSystemRESTfulAPI.Migrations
 {
     [DbContext(typeof(SchoolDbContext))]
-    partial class SchoolDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808105616_AddIAuditableEntityAndRemoveIsActiveProoerty")]
+    partial class AddIAuditableEntityAndRemoveIsActiveProoerty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,21 +110,6 @@ namespace SmartStudentManagementSystemRESTfulAPI.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("ClassRoomTeacher", b =>
-                {
-                    b.Property<int>("ClassRoomsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TeachersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ClassRoomsId", "TeachersId");
-
-                    b.HasIndex("TeachersId");
-
-                    b.ToTable("TeacherClassRooms", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -570,21 +558,6 @@ namespace SmartStudentManagementSystemRESTfulAPI.Migrations
                         .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Teachers", (string)null);
-                });
-
-            modelBuilder.Entity("ClassRoomTeacher", b =>
-                {
-                    b.HasOne("SmartStudentManagementSystemRESTfulAPI.Domain.Entities.ClassRoom", null)
-                        .WithMany()
-                        .HasForeignKey("ClassRoomsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SmartStudentManagementSystemRESTfulAPI.Domain.Entities.Teacher", null)
-                        .WithMany()
-                        .HasForeignKey("TeachersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>

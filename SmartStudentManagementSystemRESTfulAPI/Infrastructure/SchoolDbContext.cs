@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SmartStudentManagementSystemRESTfulAPI.Domain.Entities;
+using SmartStudentManagementSystemRESTfulAPI.Domain.Interfaces;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure
 {
@@ -31,23 +33,20 @@ namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure
             base.OnModelCreating(modelBuilder);
 
             // Use Table-per-Concrete-Type (TPC) mapping strategy for BaseEntity and its derived classes.
-            modelBuilder.Entity<BaseEntity>()
-                        .HasKey(e => e.Id);
-
-            modelBuilder.Entity<BaseEntity>()
-                        .UseTpcMappingStrategy();
+            modelBuilder.Entity<BaseEntity>().HasKey(e => e.Id);
+            modelBuilder.Entity<BaseEntity>().UseTpcMappingStrategy();
 
             // Apply a global query filter to exclude soft-deleted entities from queries.
             modelBuilder.Entity<BaseEntity>().HasQueryFilter(e => !e.IsDeleted);
 
             // Hide course instructors if their course is soft-deleted
             modelBuilder.Entity<CourseInstructor>()
-                        .HasQueryFilter(ci => !ci.Course.IsDeleted);
+                        .HasQueryFilter(ci => !ci.IsDeleted && !ci.Course.IsDeleted);
 
             // Apply A Global Query Filter to exclude soft-deleted entities from queries for ApplicationUser.
             modelBuilder.Entity<ApplicationUser>().HasQueryFilter(au => !au.IsDeleted);
 
-
+            
             // Automatically applies all IEntityTypeConfiguration<T>
             // implementations from the current assembly.
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(SchoolDbContext).Assembly);
@@ -60,8 +59,11 @@ namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure
             var now = DateTime.UtcNow;
 
             // Update BaseEntity-derived entities
-            var baseEntries = ChangeTracker.Entries<BaseEntity>();// Get all tracked entities that inherit from BaseEntity.
-            foreach (var entry in baseEntries)
+            // Update ApplicationUser
+
+            // Get all tracked entities that inherit from BaseEntity or impelment IAuditableEntity.
+            var auditableEntries = ChangeTracker.Entries<IAuditableEntity>();
+            foreach (var entry in auditableEntries)
             {
                 if (entry.State == EntityState.Added)
                 {
@@ -74,20 +76,6 @@ namespace SmartStudentManagementSystemRESTfulAPI.Infrastructure
                 }
             }
 
-            // Update ApplicationUser
-            var userEntries = ChangeTracker.Entries<ApplicationUser>();
-            foreach (var entry in userEntries)
-            {
-                if (entry.State == EntityState.Added)
-                {
-                    entry.Entity.CreatedAt = now;
-                    entry.Entity.UpdatedAt = now;
-                }
-                else if (entry.State == EntityState.Modified)
-                {
-                    entry.Entity.UpdatedAt = now;
-                }
-            }
         }
 
 

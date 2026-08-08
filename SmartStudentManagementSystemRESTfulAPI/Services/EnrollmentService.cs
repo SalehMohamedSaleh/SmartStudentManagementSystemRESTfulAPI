@@ -38,19 +38,26 @@
                 return enrollments;
             }
 
-            public async Task<EnrollmentDetailsDto> GetByIdAsync(int id)
+            public async Task<EnrollmentDetailsDto> GetByIdAsync(int id, string currentUserId, bool isStudent)
             {
-                var enrollment = await _context.Enrollments
-                    .AsNoTracking()
+                int parsedUserId = int.Parse(currentUserId);
+                var query = _context.Enrollments.AsNoTracking();
+
+                if (isStudent)
+                {
+                    // Students can only access their own enrollments
+                    query = query.Where(e => e.Student.ApplicationUserId == parsedUserId);
+                }
+
+                var enrollment = await query
                     .ProjectTo<EnrollmentDetailsDto>(_mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (enrollment is null)
-                    throw new KeyNotFoundException($"Enrollment with Id '{id}' was not found.");
+                    throw new KeyNotFoundException($"Enrollment with Id '{id}' was not found or you do not have permission to view it.");
 
                 return enrollment;
             }
-
             public async Task CreateAsync(CreateEnrollmentDto dto)
             {
                 await _createValidator.ValidateAndThrowAsync(dto);
